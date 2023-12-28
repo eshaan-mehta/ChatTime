@@ -10,6 +10,7 @@ const app = express();
 // Middleware setup
 app.use(cors({ origin: true, credentials: true })); // CORS setup for allowing cross-origin requests
 app.use(express.json()); // Parse incoming JSON requests
+app.use(express.urlencoded({ extended: false }));
 
 // Connect to MongoDB function
 const connectToDatabase = (connectionString) => {
@@ -23,8 +24,8 @@ const connectToDatabase = (connectionString) => {
 
       // Handle MongoDB connection events
       mongoose.connection.on("error", (error) => {
-      console.error("MongoDB connection error:", error);
-    });
+        console.error("MongoDB connection error:", error);
+      });
 
       startServer(); // Start the server once the database connection is successful
     })
@@ -36,17 +37,18 @@ const connectToDatabase = (connectionString) => {
 // Start the server function
 const startServer = () => {
   // Start the server
-  app.listen(() => {
-    console.log(`Server is running on port ${process.env.PORT}`);
+  const PORT = process.env.PORT || 8080;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
   });
 };
 
 // Routes setup
 const messageRoutes = require("./routes/messages");
-const chatRoomRoutes = require("./routes/chatrooms");
+//const chatRoomRoutes = require("./routes/chatrooms");
 
-app.use("/api/messages", messageRoutes); 
-app.use("/api/chatroom", chatRoomRoutes);
+app.use("/api/messages", messageRoutes);
+//app.use("/api/chatroom", chatRoomRoutes);
 
 // Initial connection to MongoDB using the provided URI
 connectToDatabase(process.env.MONGO_URI);

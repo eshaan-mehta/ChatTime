@@ -8,3 +8,5 @@ const {
 
 router.get("/:chatID", getMessages); // get chat messages
 router.post("/", createMessage); // create a new message
+
+module.exports = router;

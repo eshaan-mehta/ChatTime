@@ -1,12 +1,15 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const ChatRoomSchema = mongoose.Schema(
   {
     name: String, // custom name for gc, and contact name otherwise
-    members: Array,
+    members: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+    },
     owner: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
   },
   { timestamps: true }
@@ -14,4 +17,4 @@ const ChatRoomSchema = mongoose.Schema(
 
 const ChatRoom = mongoose.model("ChatRoom", ChatRoomSchema);
 
-export default ChatRoom;
+modules.exports = ChatRoom;

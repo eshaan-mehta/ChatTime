@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Message = require("../models/Message");
 
 // get all messages from the chat room
@@ -7,9 +8,9 @@ const getMessages = async (req, res) => {
     
     try {
         const messages = await Message.find({ chatRoomID: chatID }).sort({ createdAT: -1 })
-        return res.status(200).json(messages)
+        res.status(200).json(messages)
     } catch (error) {
-        return res.status(404).json({error: "Chat room not found."})
+        res.status(404).json({ error: "Chat room not found." })
     }
 
 }
@@ -18,12 +19,12 @@ const getMessages = async (req, res) => {
 const createMessage = async (req, res) => {
     const { chatRoomID, sender, message } = req.body;
 
-    if (!mongoose.Types.ObjectID.isValid(chatRoomID)) {
-        return res.status(404).json({error: "Chat Room not found."});
-    }
+    // if (!mongoose.Types.ObjectId.isValid(chatRoomID)) {
+    //     return res.status(404).json({error: "Chat Room not found."});
+    // }
 
     try {
-        const newMessage = Message.create ({
+        const newMessage = await Message.create ({
             chatRoomID, 
             sender,
             message,
