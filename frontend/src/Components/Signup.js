@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import clsx from 'clsx';
 
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 
@@ -6,26 +9,53 @@ const Signup = () => {
   const [name, setName] = useState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-  const [confimPassword, setConfimPassword] = useState();
-  const [pic, setPic] = useState();
-
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState();
 
-  const postDetails = (pic) => {
+  const navigate = useNavigate()
 
-  }
+  const handleSubmit = async (e) => {
+    setLoading(true);
+    e.preventDefault();
 
-  const handleSubmit = () => {
+    if (!name || !email || !password) {
+      setLoading(false); 
+      return;
+    }
 
+    const config = {
+      headers: {
+        "Content-type": "application/json"
+      },
+    };
+
+    axios.post(
+      "http://localhost:8080/api/user",
+      {
+        name,
+        email,
+        password
+      }, config
+    )
+    .then((response) => {
+      localStorage.setItem("userInfo", JSON.stringify(response.data));
+      setLoading(false);
+      navigate('/chats');
+    })
+    .catch((error) => {
+      setLoading(false);
+      //console.log(error)
+      setErrorMessage(error.response.data.error); // narrowed down from console logs
+    })
   }
 
   return (
     <div className='flex flex-wrap w-full md:flex-nowrap p-2 '>
-      <form className='w-full px-5 justify-center flex-col mb-5'>
+      <form className='w-full px-5 justify-center flex-col mb-5' onSubmit={(e) => handleSubmit(e)}>
         <input 
           id="Name"
-          className='h-[3rem] rounded-[0.55rem] border-2 border-primary pl-3 w-full mb-10'
+          className='h-[3rem] rounded-[0.55rem] border-2 border-primary bg-white pl-3 w-full mb-10 '
           type='text'
           required
           placeholder={"Full Name"}
@@ -34,17 +64,17 @@ const Signup = () => {
 
         <input 
           id="Email"
-          className='h-[3rem] rounded-[0.55rem] border-2 border-primary pl-3 w-full mb-10'
+          className='h-[3rem] rounded-[0.55rem] border-2 border-primary bg-white pl-3 w-full mb-10'
           type='email'
           required
           placeholder={"Email"}
           onChange={(e) => setEmail(e.target.value)}
         />
         
-        <div className='relative items-center mb-10'>
+        <div className={clsx('relative items-center', {[`mb-${errorMessage? '3' : '10'}`] : true })}>
           <input 
             id="Password"
-            className='h-[3rem] rounded-[0.55rem] border-2 border-primary pl-3 w-full '
+            className='h-[3rem] rounded-[0.55rem] border-2 border-primary bg-white pl-3 w-full '
             type={showPassword? 'text': 'password'}
             required
             placeholder={"Password"}
@@ -56,22 +86,7 @@ const Signup = () => {
           </button>
         </div>
 
-        <div className='relative items-center mb-7'>
-          <input 
-            id="ConfirmPassword"
-            className='h-[3rem] rounded-[0.55rem] border-2 border-primary pl-3 w-full '
-            type={showConfirmPassword? 'text': 'password'}
-            required
-            placeholder={"Confirm Password"}
-            onChange={(e) => setConfimPassword(e.target.value)}
-          />
-
-          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className='absolute right-4 text-xl top-[0.875rem]'>
-            {showConfirmPassword ? (<FaEyeSlash />) : (<FaEye />)}
-          </button>
-        </div>
-
-        <div className='inline-block gap-4 items-center mb-6 w-full '>
+        {/* <div className='inline-block gap-4 items-center mb-6 w-full '>
           <h1 className='mb-2 font-semibold text-gray-900'>Profile Picture</h1>
           <input
             id="Pic"
@@ -81,14 +96,19 @@ const Signup = () => {
             placeholder='Profile Picture'
             onChange={(e) => postDetails(e.target.files[0])}
           />
-        </div>
+        </div> */}
 
+        {errorMessage && 
+        <h1 className='text-center mb-5 text-red-500 font-medium'>
+          {errorMessage}  
+        </h1>}
+        
+        
         <div className='flex justify-center'>
           <button 
             type='submit'
-            onClick={handleSubmit}
-            disabled={false}
-            className='bg-primary text-white font-bold p-3 rounded-2xl w-[15rem] hover:scale-105 transition-all'
+            disabled={loading}
+            className='bg-primary text-white font-bold p-3 rounded-2xl w-[15rem] hover:scale-105 transition-all disabled:scale-100 disabled:bg-gray-400'
           >
             Sign Up
           </button>

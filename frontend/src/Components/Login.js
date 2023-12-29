@@ -19,7 +19,7 @@ const Login = () => {
 
         <input 
           id="Email"
-          className='h-[3rem] rounded-[0.55rem] border-2 border-primary pl-3 w-full mb-10'
+          className='h-[3rem] rounded-[0.55rem] border-2 border-primary bg-white pl-3 w-full mb-10'
           type='email'
           required
           placeholder={"Email"}
@@ -29,7 +29,7 @@ const Login = () => {
         <div className='relative items-center mb-12'>
           <input 
             id="Password"
-            className='h-[3rem] rounded-[0.55rem] border-2 border-primary pl-3 w-full '
+            className='h-[3rem] rounded-[0.55rem] border-2 border-primary bg-white pl-3 w-full '
             type={showPassword? 'text': 'password'}
             required
             placeholder={"Password"}
