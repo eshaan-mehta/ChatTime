@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
+const asyncHandler = require("express-async-handler")
 const Message = require("../models/Message");
 
 // get all messages from the chat room
 // TODO: have messages up to a certain prev date and user can get older messages
-const getMessages = async (req, res) => {
+const getMessages = asyncHandler(async (req, res) => {
     const { chatID } = req.params;
     
     try {
@@ -12,11 +12,10 @@ const getMessages = async (req, res) => {
     } catch (error) {
         res.status(404).json({ error: "Chat room not found." })
     }
-
-}
+});
 
 // create message
-const createMessage = async (req, res) => {
+const createMessage = asyncHandler(async (req, res) => {
     const { chatRoomID, sender, message } = req.body;
 
     // if (!mongoose.Types.ObjectId.isValid(chatRoomID)) {
@@ -34,8 +33,7 @@ const createMessage = async (req, res) => {
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
-
-}
+});
 
 
 //TODO: Edit + Delete message

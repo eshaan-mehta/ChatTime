@@ -28,7 +28,7 @@ const Signup = () => {
           className='h-[3rem] rounded-[0.55rem] border-2 border-primary pl-3 w-full mb-10'
           type='text'
           required
-          placeholder={"Name"}
+          placeholder={"Full Name"}
           onChange={(e) => setName(e.target.value)}
         />
 
@@ -72,7 +72,7 @@ const Signup = () => {
         </div>
 
         <div className='inline-block gap-4 items-center mb-6 w-full '>
-          <h1 className='mb-2 font-semibold '>Profile Picture</h1>
+          <h1 className='mb-2 font-semibold text-gray-900'>Profile Picture</h1>
           <input
             id="Pic"
             className='h-[3rem] border-2pl-3'
