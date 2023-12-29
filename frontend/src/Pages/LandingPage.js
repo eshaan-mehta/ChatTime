@@ -11,7 +11,7 @@ const LandingPage = () => {
         <h2 className='text-white mt-7 text-lg sm:text-2xl text-center'>Message others with no distractions</h2>
       </div>
 
-      <div className='flex justify-center gap-8 text-white text-center items-center font-bold mt-4 z-10'>
+      <div className='flex justify-center gap-8 text-white text-center items-center font-bold mt-[-4rem] sm:mt-4 z-10'>
         <Link to="/auth" className='rounded-[0.6rem] p-3 w-[10rem] bg-primary hover:scale-[1.07] transition-all'>Get Started</Link>
       </div>
       

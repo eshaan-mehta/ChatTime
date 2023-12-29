@@ -10,6 +10,7 @@ const Signup = () => {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
   const [showPassword, setShowPassword] = useState(false);
+  
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState();
 
@@ -31,12 +32,13 @@ const Signup = () => {
     };
 
     axios.post(
-      "http://localhost:8080/api/user",
+      "http://192.168.1.3:8080/api/user",
       {
         name,
         email,
         password
-      }, config
+      },
+      config
     )
     .then((response) => {
       localStorage.setItem("userInfo", JSON.stringify(response.data));
@@ -45,7 +47,7 @@ const Signup = () => {
     })
     .catch((error) => {
       setLoading(false);
-      //console.log(error)
+      console.log(error)
       setErrorMessage(error.response.data.error); // narrowed down from console logs
     })
   }
