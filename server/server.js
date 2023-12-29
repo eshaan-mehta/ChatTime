@@ -1,10 +1,12 @@
 // Import modules
 const express = require("express");
 const cors = require("cors");
+
 const connectDB = require("./config/db");
+const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
+
 
 require("dotenv").config(); // Load environment variables from a .env file if present
-// Create an Express app
 connectDB()
 const app = express();
 
@@ -28,6 +30,9 @@ const messageRoutes = require("./routes/messageRoutes");
 app.use('/api/user', userRoutes);
 app.use("/api/messages", messageRoutes);
 //app.use("/api/chatroom", chatRoomRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 // Export the Express app for testing purposes
 module.exports = app;
