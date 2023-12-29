@@ -3,9 +3,18 @@ const User = require('../models/User');
 const generateToken = require("../config/generateToken");
 
 const allUsers = asyncHandler(async (req, res) => {
-    const users = await User.find({}).sort({ createdAt: -1 });
+    // searches for either name or email to match req.query.search, "i" = case insensitive
+    const keyword = req.query.search ? {
+        $or: [ 
+            { name: { $regex: req.query.search, $options: "i" } },
+            { email: { $regex: req.query.search, $options: "i" } },
+        ]
+    } : {};
 
-    return res.status(200).json(users);
+    // find all users matching this keyword except the current logged in one
+    const users = await User.find(keyword).find({ _id: {$ne: req.user._id}})
+
+    res.status(200).json(users);
 });
 
 const registerUser = asyncHandler(async (req, res) => {
