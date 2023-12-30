@@ -101,15 +101,51 @@ const createGroupChat = asyncHandler(async (req, res) => {
 });
 
 const renameGroupChat = asyncHandler(async (req, res) => {
+    const { chatId, newName } = req.body;
+
+    try {
+        const updatedChat = await Chat.findByIdAndUpdate(chatId, {
+            name: newName
+        }, { new: true })
+        .populate("members", "-password")
+        .populate("admin", "-password");
     
+        res.status(200).json(updatedChat); 
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
 });
 
 const removeFromGroupChat = asyncHandler(async (req, res) => {
+    const { chatId, userId } = req.body;
+
+    try {
+        const removedMember = await Chat.findByIdAndUpdate(chatId, {
+            $pull: { members: userId },
+        }, { new: true })
+        .populate("members", "-password")
+        .populate("admin", "-password");
     
+        res.status(200).json(removedMember);  
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
 });
 
 const addToGroupChat = asyncHandler(async (req, res) => {
+    const { chatId, userId } = req.body;
+
+    try {
+        const addedMember = await Chat.findByIdAndUpdate(chatId, {
+            $push: { members: userId },
+        }, { new: true })
+        .populate("members", "-password")
+        .populate("admin", "-password");
     
+        res.status(200).json(addedMember); 
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
 });
     
 module.exports = {
