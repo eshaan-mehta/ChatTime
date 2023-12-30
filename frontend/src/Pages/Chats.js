@@ -1,13 +1,22 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useChatContext } from '../Context/ChatProvider'
+import { useNavigate } from 'react-router-dom';
 
 const Chats = () => {
-  //check for user sign in first, otherwise navigate to /auth
+  const { user, setUser } = useChatContext();
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+    }
+  }, [])
 
   return (
     <div className='w-screen h-screen'>
-      <h1 className='text-white'>
-        Chat Page
-      </h1>
+      <div className='w-screen h-[5rem] bg-gray-50'>
+
+      </div>
     </div>
   )
 }

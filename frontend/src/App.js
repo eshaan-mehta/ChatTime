@@ -9,15 +9,12 @@ import Chats from "./Pages/Chats";
 const App = () => {
   return (
     <div className="bg-gray-900 bg-cover">
-
-      <BrowserRouter>
-        <Routes>
-          <Route index element={<LandingPage />} />
-          <Route path="/auth" element={<Authenticate/>} />
-          <Route path="/chats" element={<Chats/>} />
-        </Routes>
-      </BrowserRouter>
-
+      <Routes>
+        <Route index element={<LandingPage />} />
+        <Route path="/auth" element={<Authenticate/>} />
+        <Route path="/chats" element={<Chats/>} />
+      </Routes>
+      
       <Footer/>
     </div>
       

@@ -1,18 +1,16 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom';
 import clsx from "clsx";
 
 import Login from '../Components/Login';
 import Signup from '../Components/Signup';
+import Logo from '../Components/Logo';
 
 const Authenticate = () => {
     const [page, setPage] = useState("login");
 
   return (
     <div className='w-screen h-screen flex justify-center'>
-        <div className='fixed top-2 left-3 p-3 font-semibold text-primary text-4xl'>
-            <Link to='/'>Only Chats</Link>
-        </div>
+        <Logo />
 
         <div className='fixed top-[7.5rem] sm:top-[6rem] w-[42rem] max-w-[82.5%] bg-gray-50 rounded-2xl'>
             <div className='flex w-full mt-3 h-[4rem] justify-center items-center font-bold text-2xl md:text-3xl text-primary text-center gap-4 px-2'>
