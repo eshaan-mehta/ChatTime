@@ -25,11 +25,11 @@ const server = app.listen(PORT, () => {
 // Routes setup
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
-//const chatRoutes = require("./routes/chatRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 app.use('/api/user', userRoutes);
 app.use("/api/messages", messageRoutes);
-//app.use("/api/chat", chatRoutes);
+app.use("/api/chat", chatRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -14,7 +14,7 @@ const Authenticate = () => {
             <Link to='/'>Only Chats</Link>
         </div>
 
-        <div className='fixed top-[7.5rem] sm:top-[10rem] w-[42rem] max-w-[82.5%] bg-gray-50 rounded-2xl'>
+        <div className='fixed top-[7.5rem] sm:top-[6rem] w-[42rem] max-w-[82.5%] bg-gray-50 rounded-2xl'>
             <div className='flex w-full mt-3 h-[4rem] justify-center items-center font-bold text-2xl md:text-3xl text-primary text-center gap-4 px-2'>
                 <div
                     onClick={() => setPage("login")}

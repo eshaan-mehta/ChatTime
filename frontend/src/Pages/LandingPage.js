@@ -8,7 +8,7 @@ const LandingPage = () => {
       
       <div className='absolute z-10'>
         <h1 className=' font-semibold text-primary mt-[-16rem] text-7xl sm:text-8xl text-center'>Only Chats</h1>
-        <h2 className='text-white mt-7 text-lg sm:text-2xl text-center'>Message others with no distractions</h2>
+        <h2 className='text-white mt-7 text-lg sm:text-2xl text-center'>Message others, that's it</h2>
       </div>
 
       <div className='flex justify-center gap-8 text-white text-center items-center font-bold mt-[-4rem] sm:mt-4 z-10'>
