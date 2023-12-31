@@ -1,6 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
 
+import Footer from "../Components/Footer";
+
 const LandingPage = () => {
   return (
     <div className='h-screen w-screen flex justify-center relative items-center'>
@@ -15,7 +17,7 @@ const LandingPage = () => {
         <Link to="/auth" className='rounded-[0.6rem] p-3 w-[10rem] bg-primary hover:scale-[1.07] transition-all'>Get Started</Link>
       </div>
       
-      
+      <Footer/>
     </div>
   )
 }

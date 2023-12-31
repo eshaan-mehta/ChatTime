@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState } from "react";
 
 const ChatContext = createContext()
 
+
 const ChatProvider = ({ children }) => {
   const [user, setUser] = useState();
 
@@ -19,10 +20,10 @@ export const useChatContext = () => {
         throw new Error("Context not used within provider.");
     }
 
-    if (!context.user){
-        context.user = JSON.parse(localStorage.getItem("userInfo"));
+    if (!context.user) {
+      context.user = JSON.parse(localStorage.getItem("userInfo"));
     }
-
+    
     return context;
 }
 

@@ -10,7 +10,8 @@ module.exports = {
         'bgImage': "url(/public/bg.jpg)"
       },
       colors: {
-        "primary": "#3aa764"
+        "primary": "#3aa764",
+        "light": "#fafafa"
       }
     }
   },
