@@ -29,7 +29,7 @@ const chatRoutes = require("./routes/chatRoutes");
 
 app.use('/api/user', userRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/api/chat", chatRoutes);
+app.use("/api/chats", chatRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

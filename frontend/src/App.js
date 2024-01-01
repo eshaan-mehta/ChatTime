@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 
 import LandingPage from "./Pages/LandingPage";
 import Authenticate from "./Pages/Authenticate";
-import Chats from "./Pages/Chats";
+import ChatsPage from "./Pages/ChatsPage";
 
 const App = () => {
   return (
@@ -11,7 +11,7 @@ const App = () => {
       <Routes>
         <Route index element={<LandingPage />} />
         <Route path="/auth" element={<Authenticate/>} />
-        <Route path="/chats" element={<Chats/>} />
+        <Route path="/chats" element={<ChatsPage/>} />
       </Routes>
     </div> 
   );

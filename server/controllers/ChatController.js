@@ -3,22 +3,31 @@ const Chat = require("../models/Chat");
 const User = require("../models/User");
 
 const fetchChats = asyncHandler(async (req, res) => {
+    let chats; 
+
     try {
-        let chat = await Chat.find( { members: { $elemMatch: { $eq: req.user._id } } })
+        chats = await Chat.find( { members: { $elemMatch: { $eq: req.user._id } } })
         .populate("members", '-password')
         .populate("admin", '-password')
         .populate("latestMessage")
         .sort({ updatedAt: -1 });
         
-        chat = await User.populate(chat, {
+        chats = await User.populate(chats, {
             path: "latestMessage.sender",
             select: "name pic email"
         });
+        
+        chats.forEach(chat => {
+            if (!chat.isGroupChat) {
+                chat.name = (req.user.name === chat.members[0].name) ? chat.members[1].name : chat.members[0].name; 
+            }
+        });
 
-        res.status(200).json(chat);
+        res.status(200).json(chats);
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
+    
 });
 
 const accessChat = asyncHandler(async (req, res) => {

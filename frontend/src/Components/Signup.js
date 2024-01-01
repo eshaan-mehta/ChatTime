@@ -4,8 +4,10 @@ import axios from "axios";
 import clsx from 'clsx';
 
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
+import { useChatContext } from '../Context/ChatProvider';
 
 const Signup = () => {
+  const { setUser } = useChatContext()
   const [name, setName] = useState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
@@ -43,6 +45,7 @@ const Signup = () => {
     .then((response) => {
       localStorage.setItem("userInfo", JSON.stringify(response.data));
       setLoading(false);
+      setUser(response.data);
       navigate('/chats');
     })
     .catch((error) => {
