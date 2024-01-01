@@ -34,7 +34,7 @@ const Signup = () => {
     };
 
     axios.post(
-      "http://192.168.1.3:8080/api/user",
+      "http://localhost:8080/api/user",
       {
         name,
         email,

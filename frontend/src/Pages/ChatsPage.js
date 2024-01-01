@@ -21,26 +21,31 @@ const ChatsPage = () => {
       }
     }
     
-    const response = await axios.get("http://192.168.1.3:8080/api/chats", config);
-    setChats(response.data);
+    axios.get("http://localhost:8080/api/chats", config)
+    .then((response) => {
+      setChats(response.data);
 
-    if (response.data) {
-      setActiveChat(response.data[0])
-    }
+      if (response.data) {
+        setActiveChat(response.data[0])
+      }
+    })
+
   }
 
   const searchUser = async (keyword) => {
+    
     const config = {
       headers: {
         Authorization: `Bearer ${user.token}`
       }
     }
-    axios.get(`http://192.168.1.3:8080/api/user?search=${keyword}`, config)
+    axios.get(`http://localhost:8080/api/user?search=${keyword}`, config)
     .then((response) => {
       setSearchedUsers(response.data)
+      setIsSearchingUser(true);
     })
-
   }
+
 
   const accessChat = () => {
 
@@ -93,8 +98,8 @@ const ChatsPage = () => {
           </div>
 
           <div 
-            //onPointerLeave={() => setIsSearchingUser(false)}
-            className='w-full relative border border-indigo-500'>
+            onPointerLeave={() => setIsSearchingUser(false)}
+            className='w-full relative '>
             <input 
               placeholder='Search Users'
               className='w-full h-10 mt-2 rounded-xl bg-gray-100 border border-black/30 pl-3 '
@@ -104,17 +109,21 @@ const ChatsPage = () => {
             />
 
             {isSearchingUser && 
-            <div className='absolute w-full min-h-12 max-h-[12rem] bg-light p-1 border-[1.5px] border-black/70 overflow-auto'>
-              {searchedUsers.map((user, index) => (
+            <div className='absolute w-full min-h-[3rem] max-h-[12rem] bg-light p-1 border-[2.5px] border-primary/70 overflow-auto flex flex-col items-center shadow-l'>
+              {searchedUsers.length > 0 ? searchedUsers.map((user, index) => (
                 <div 
                   key={index} 
-                  className='bg-gray-100 hover:bg-gray-200 mb-1 last:mb-0 py-2 pl-2 border border-black/30 rounded-lg'
+                  className='bg-gray-100 hover:bg-gray-200 mb-2 last:mb-0 py-2 pl-2 border border-black/30 rounded-lg w-full'
                   onClick={accessChat}
                 >
                   <p className='text-gray-700 font-medium'>{user.name}</p>
                   <p className='text-gray-500 text-xs'>{user.email}</p>
-                </div>  
-              ))}
+                </div>)) : (
+                <div className='pl-2 text-gray-700 text-md h-full'>
+                  No Users Found
+                </div>
+                )  
+              }
             </div>}
           </div>  
 

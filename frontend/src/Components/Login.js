@@ -33,7 +33,7 @@ const Login = () => {
     };
 
     axios.post(
-      "http://192.168.1.3:8080/api/user/login",
+      "http://localhost:8080/api/user/login",
       {
         email,
         password
