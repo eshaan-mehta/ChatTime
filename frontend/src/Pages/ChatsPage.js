@@ -83,7 +83,7 @@ const ChatsPage = () => {
     axios.post("http://localhost:8080/api/chats", { userId: u._id }, config)
     .then((response) => {
       handlePreviewClick(response.data)
-      setChats([...chats, response.data])
+      setChats([response.data, ...chats])
     })
     .catch((error) => {
       console.warn(error.error)
