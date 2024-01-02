@@ -5,7 +5,7 @@ const protect = require("../middlewares/authMiddleware");
 
 const {
     fetchChats,
-    accessChat,
+    createChat,
     createGroupChat,
     renameGroupChat,
     removeFromGroupChat,
@@ -13,7 +13,7 @@ const {
 } = require("../controllers/ChatController");
 
 router.get("/", protect, fetchChats); 
-router.post("/", protect, accessChat);
+router.post("/", protect, createChat);
 router.post("/group", protect, createGroupChat);
 router.put("/rename", protect, renameGroupChat);
 router.put("/groupremove", protect, removeFromGroupChat);

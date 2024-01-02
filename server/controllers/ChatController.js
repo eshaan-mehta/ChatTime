@@ -30,38 +30,22 @@ const fetchChats = asyncHandler(async (req, res) => {
     
 });
 
-const accessChat = asyncHandler(async (req, res) => {
+const createChat = asyncHandler(async (req, res) => {
     const { userId } = req.body;
 
     if (!userId) {
         console.log("missing user id in request.");
         return res.sendStatus(400);
     }
-
-    // search for existing chat of two users
-    let isChat = Chat.find({ 
-        isGroupChat: false, 
-        $and: [
-            { members: { $elemMatch: { $eq: req.user._id } } },
-            { members: { $elemMatch: { $eq: userId } } },
-        ]
-    })
-    .populate("members", "-password") 
-    .populate("latestMessage");
-
-    // populate latest chat sender info
-    isChat = await User.populate(isChat, {
-        path: "latestMessage.sender",
-        select: "name pic email"
-    });
-
-    // chat exists
-    if (isChat.length > 0) { 
-        return res.status(200).json(isChat[0]);
-    }  
     
+    if (userId === req.user._id) {
+        res.status(400).json({ error: "Cannot create chat with self" })
+    }
+
+
     // create a new chat with two users
     try {
+
         const newChat = await Chat.create({
             name: "sender",
             isGroupChat: false,
@@ -71,6 +55,7 @@ const accessChat = asyncHandler(async (req, res) => {
         const fullChat = await Chat.findById(newChat._id).populate("members", "-password");
         res.status(200).json(fullChat);
     } catch (error) {
+        console.log("error")
         res.status(400).json({ error: error.message });
     }
     
@@ -159,7 +144,7 @@ const addToGroupChat = asyncHandler(async (req, res) => {
     
 module.exports = {
     fetchChats,
-    accessChat,
+    createChat,
     createGroupChat,
     renameGroupChat,
     removeFromGroupChat,
