@@ -276,7 +276,7 @@ const ChatsPage = () => {
                   }}
                 >
                   <input 
-                    className='grow h-12 text-lg rounded-lg border-2 border-primary px-4 text-left'
+                    className='grow h-12 text-[1.075rem] rounded-lg border-2 border-primary px-4 text-left'
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                   />
