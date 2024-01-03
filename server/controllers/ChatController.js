@@ -12,10 +12,10 @@ const fetchChats = asyncHandler(async (req, res) => {
         .populate("latestMessage")
         .sort({ updatedAt: -1 });
         
-        chats = await User.populate(chats, {
-            path: "latestMessage.sender",
-            select: "name pic email"
-        });
+        // chats = await User.populate(chats, {
+        //     path: "latestMessage.sender",
+        //     select: "name pic email"
+        // });
         
         chats.forEach(chat => {
             if (!chat.isGroupChat) {
@@ -31,7 +31,7 @@ const fetchChats = asyncHandler(async (req, res) => {
 });
 
 const createChat = asyncHandler(async (req, res) => {
-    const { userId } = req.body;
+    const { userId, name } = req.body;
 
     if (!userId) {
         console.log("missing user id in request.");
@@ -47,7 +47,7 @@ const createChat = asyncHandler(async (req, res) => {
     try {
 
         const newChat = await Chat.create({
-            name: "sender",
+            name: name,
             isGroupChat: false,
             members: [req.user._id, userId]
         });

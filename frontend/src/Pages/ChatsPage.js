@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import { useChatContext } from '../Context/ChatProvider'
 
 import { FaArrowCircleUp } from "react-icons/fa";
+import MessageBubble from '../Components/MessageBubble';
 
 const ChatsPage = () => {
   const { user, setUser } = useChatContext();
@@ -13,6 +14,8 @@ const ChatsPage = () => {
 
   const [chats, setChats] = useState([])
   const [activeChat, setActiveChat] = useState()
+  const [messages, setMessages] = useState([])
+  const [message, setMessage] = useState("")
   const [isSearchingUser, setIsSearchingUser] = useState(false);
   const [searchedUsers, setSearchedUsers] = useState([]);
 
@@ -25,24 +28,38 @@ const ChatsPage = () => {
     
     axios.get("http://localhost:8080/api/chats", config)
     .then((response) => {
-      setChats(response.data);
+      const allChats = response.data
+      setChats(allChats);
 
-      if (response.data) {
-        setActiveChat(response.data[0])
+      if (allChats && !activeChat) {
+        setActiveChat(allChats[0])
+        getMessages(allChats[0]._id)
       }
     })
 
   }
 
-  const getMessages = async () => {
+  const getMessages = async (chatId) => {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      }
+    }
 
+    axios.get(`http://localhost:8080/api/messages/${chatId}`, config)
+    .then((response) => {
+      setMessages(response.data)
+    })
+    .catch((error) => {
+      console.warn(error)
+    })
   }
 
   const handlePreviewClick = (chat) => {
     if (chat._id !== activeChat._id) {
       //const otherUser = chat.members.find((u) => u._id !== user._id)
       setActiveChat(chat);
-      getMessages()
+      getMessages(chat._id)
     } else {
       console.log("on active chat");
     }
@@ -67,9 +84,9 @@ const ChatsPage = () => {
     const alreadyExistingChat = chats.find((c) => c.members.some((member) => member._id === u._id) > 0)
 
     if (alreadyExistingChat) {
-      handlePreviewClick(alreadyExistingChat)
+      handlePreviewClick(alreadyExistingChat);
     } else {
-      createChat(u)
+      createChat(u);
     }
   }
 
@@ -80,13 +97,34 @@ const ChatsPage = () => {
       }
     }
 
-    axios.post("http://localhost:8080/api/chats", { userId: u._id }, config)
+    axios.post("http://localhost:8080/api/chats", { userId: u._id, name: u.name }, config)
     .then((response) => {
       handlePreviewClick(response.data)
       setChats([response.data, ...chats])
+      setMessages([])
     })
     .catch((error) => {
-      console.warn(error.error)
+      console.warn(error)
+    })
+  }
+
+  const sendMessage = async (id) => {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${user.token}`
+      }
+    }
+
+    axios.post("http://localhost:8080/api/messages", {
+      chatRoomID: id,
+      message: message
+    }, config)
+    .then((response) => {
+      setMessages([response.data, ...messages])
+      setMessage("")
+    })
+    .catch((error) => {
+      console.warn(error)
     })
   }
 
@@ -115,7 +153,7 @@ const ChatsPage = () => {
       fetchChats()
     }
     
-  }, [chats])
+  }, [activeChat, messages])
 
 
   return (
@@ -142,8 +180,9 @@ const ChatsPage = () => {
         </div>
       </div>}
 
-      {user && <div className='flex flex-grow px-3 pb-2 w-full gap-4'>
-        <div className='w-[30%] h-full rounded-xl bg-none bg-light px-[0.35rem] relative'>
+      {user && <div className='flex flex-grow px-3 pb-2 w-full gap-4 overflow-hidden'>
+        {/* Search View */}
+        <div className='w-[30%] h-full rounded-xl bg-none bg-light px-[0.35rem] relative overflow-hidden'>
           {/* My Chats Header */}
           <div className='flex justify-center mt-2  bg-gray-200 rounded-t-lg'>
             <h1 className='text-3xl font-medium text-primary px-3 py-2 '>
@@ -155,16 +194,16 @@ const ChatsPage = () => {
           <div 
             onPointerLeave={() => setIsSearchingUser(false)}
             className='w-full relative '>
-            <input 
+            <input
               placeholder='Search Users'
-              className='w-full h-10 mt-2 rounded-xl bg-gray-100 border border-black/30 pl-3 '
+              className='w-full h-10 mt-2 rounded-lg bg-gray-100 border border-black/30 pl-3 '
               onClick={() => setIsSearchingUser(true)}
               onChange={(e) => searchUser(e.target.value)}
               
             />
 
             {isSearchingUser && 
-            <div className='absolute w-full  max-h-[12rem] bg-light p-1 border-[2.5px] border-primary/70 overflow-auto no-scrollbar flex flex-col items-center shadow-l'>
+            <div className='absolute w-full  max-h-[12rem] bg-light p-1 border-[2.5px] border-primary/70 overflow-auto flex flex-col items-center shadow-l'>
               {searchedUsers.length > 0 ? searchedUsers.map((user, index) => (
                 <div 
                   key={index} 
@@ -184,11 +223,11 @@ const ChatsPage = () => {
 
           {/* Chat Previews */}
           {chats.length > 0 ? 
-            (<div className='asbolute w-full mt-4 overflow-hidden'>
+            (<div className='asbolute  max-h-[82%] w-full mt-4 overflow-auto no-scrollbar'>
               {chats.map((chat, index) => (
                 <div 
                   key={index} 
-                  className={clsx('w-full h-[5rem] border-2 border-primary rounded-lg mb-2 items-center px-6 pt-2 hover:cursor-pointer transition-all', {"bg-primary": activeChat._id === chat._id})}
+                  className={clsx('w-full h-[5rem] border-2 border-primary rounded-lg mb-2 items-center px-6 pt-2  hover:cursor-pointer transition-all', {"bg-primary": activeChat._id === chat._id})}
                   onClick={() => handlePreviewClick(chat)}
                 >
                     <h1 className={clsx('font-normal text-2xl tracking-[0.025rem] ', {[`text-${(activeChat._id === chat._id) ? "gray-900" : "gray-700"}`] : true})}>
@@ -196,13 +235,13 @@ const ChatsPage = () => {
                     </h1>
                     <div className='w-full overflow-hidden max-h-6'>
                     <p className={clsx('text-sm pt-1', {[`text-${(activeChat._id === chat._id) ? "gray-50" : "gray-500"}`] : true})}>
-                        {(chat.latestMessage) ? chat.latestMessage.message: "This is a template latest message asdlfkjasdl;fajsdlf;kajsdlfjasd;lfkajs"}
+                        {(chat.latestMessage) ? chat.latestMessage.message: "- - - -"}
                     </p>
                   </div>
                 </div> 
               ))}
             </div>) : (
-            <div className='flex flex-grow  justify-center'>
+            <div className='flex flex-grow justify-center'>
               <h1 className='text-gray-700 mt-[10rem] text-center font-extralight'>
                 Search users to start a new chat
               </h1>
@@ -211,24 +250,45 @@ const ChatsPage = () => {
         </div>
         
         {/* Chat View */}
-        <div className='w-full h-full rounded-xl bg-light'>
+        <div className='w-full h-full p-1 rounded-xl bg-light'>
           {activeChat? (
-            <div className='p-1 relative flex flex-grow w-full h-full'>
+            <div className='p-1 relative flex flex-col flex-grow w-full h-full'>
               {/* Chat Name */}
               <div className='text-center w-full bg-gray-200 rounded-t-lg h-max'>
                 <h1 className='text-3xl font-medium text-gray-900 px-3 py-2 '>{activeChat.name}</h1>
+                <small></small>
               </div>
 
-              {/* Message Field */}
-              <form className='absolute flex bottom-3  w-[98%] gap-3 pl-2'>
-                <input className='left-2 grow h-14 text-lg rounded-lg border-2 border-primary px-4 text-left'/>
-                <button
-                  type='submit'
-                  className='text-primary text-[2.8rem] hover:scale-110 transition'
+              <div className='flex flex-col w-full flex-grow overflow-hidden'>
+                {/* Messages View */}
+                <div className='w-full flex flex-col-reverse flex-grow border-x-[8px] border-gray-200 gap-2 py-4 px-2 overflow-auto no-scrollbar'>
+                  {messages && messages.map((message, index) => (
+                    <MessageBubble key={index} message={message} isUser={message.sender === user._id} />
+                  ))}
+                </div>
+
+                {/* Message Field */}
+                <form
+                  className='flex items-center gap-4 px-5 py-3 pb-2 bg-gray-200 mb-1 rounded-b-lg'
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    sendMessage(activeChat._id)
+                  }}
                 >
-                  <FaArrowCircleUp />
-                </button>
-              </form>
+                  <input 
+                    className='grow h-12 text-lg rounded-lg border-2 border-primary px-4 text-left'
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                  />
+                  <button
+                    type='submit'
+                    className='text-primary text-[2.8rem] hover:scale-110 transition bg-white rounded-full border-primary'
+                  >
+                    <FaArrowCircleUp />
+                  </button>
+                </form>
+              </div>
+
             </div>
           ) : (
             <div className='w-full h-full flex justify-center items-center'>
