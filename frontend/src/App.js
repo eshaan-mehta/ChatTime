@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import LandingPage from "./Pages/LandingPage";
 import Authenticate from "./Pages/Authenticate";
 import ChatsPage from "./Pages/ChatsPage";
+import AboutPage from "./Pages/AboutPage";
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
         <Route index element={<LandingPage />} />
         <Route path="/auth" element={<Authenticate/>} />
         <Route path="/chats" element={<ChatsPage/>} />
+        <Route path="/about" element={<AboutPage/>} />
       </Routes>
     </div> 
   );

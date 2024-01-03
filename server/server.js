@@ -5,21 +5,14 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 
-
 require("dotenv").config(); // Load environment variables from a .env file if present
+
 connectDB()
 const app = express();
 
 // Middleware setup
-app.use(cors({ origin: true, credentials: true })); // CORS setup for allowing cross-origin requests
+app.use(cors({ origin: "http://localhost:3000", credentials: true })); // CORS setup for allowing cross-origin requests
 app.use(express.json()); // Parse incoming JSON requests
-
-
-const PORT = process.env.PORT || 8080;
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
 
 
 // Routes setup
@@ -34,5 +27,16 @@ app.use("/api/chats", chatRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-// Export the Express app for testing purposes
-module.exports = app;
+
+const PORT = process.env.PORT || 8080;
+const server = app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+// const io = require("socket.io")(server, {
+//   pingTimeout: 60000, // close connection after 1 minute of inactivity to save bandwidth
+//   cors: {
+//     origin: "http://localhost:3000"
+//   }
+// })
+

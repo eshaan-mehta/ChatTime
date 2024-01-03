@@ -1,6 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
 
+import { FaExternalLinkAlt } from "react-icons/fa";
+
 import Footer from "../Components/Footer";
 
 const LandingPage = () => {
@@ -13,9 +15,15 @@ const LandingPage = () => {
         <h2 className='text-white mt-7 text-lg sm:text-2xl text-center'>Message others, that's it</h2>
       </div>
 
-      <div className='flex justify-center gap-8 text-white text-center items-center font-bold mt-[-4rem] sm:mt-4 z-10'>
-        <Link to="/auth" className='rounded-[0.6rem] p-3 w-[10rem] bg-primary hover:scale-[1.07] transition-all'>Get Started</Link>
+
+      <div className='flex justify-center gap-8 text-white items-center  mt-[-4rem] sm:mt-4 z-10'>
+        <Link to="/auth" className='rounded-[0.6rem] p-3 w-[10rem] text-center font-bold bg-primary hover:scale-[1.05] transition-all'>Get Started</Link>
+        <Link to="/about" className='flex items-center gap-2 bg-none  hover:scale-[1.03] transition-all'>
+          <span>About this site</span>
+          <FaExternalLinkAlt  />
+        </Link>
       </div>
+      
       
       <Footer/>
     </div>
