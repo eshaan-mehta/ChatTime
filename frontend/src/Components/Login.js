@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import clsx from 'clsx';
@@ -7,7 +7,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useChatContext } from '../Context/ChatProvider';
 
 const Login = () => {
-  const { setUser } = useChatContext();
+  const { user, setUser } = useChatContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -44,19 +44,23 @@ const Login = () => {
       localStorage.setItem("userInfo", JSON.stringify(response.data));
       setLoading(false);
       setUser(response.data)
-      navigate('/chats');
     })
     .catch((error) => {
       setLoading(false);
       console.log(error)
       setErrorMessage(error.response.data.error); // narrowed down from console logs
     })
-    
   }
 
+  useEffect(() => { 
+    if (localStorage.getItem("userInfo")) {
+      navigate('/chats');
+    }
+  }, [user]);
+
   return (
-    <div className='flex flex-wrap w-full md:flex-nowrap p-2 '>
-      <form className='w-full px-5 justify-center flex-col mb-5' onSubmit={(e) => handleSubmit(e)}>
+    <div className='flex flex-wrap w-full p-2 md:flex-nowrap '>
+      <form className='flex-col justify-center w-full px-5 mb-5' onSubmit={(e) => handleSubmit(e)}>
         
 
         <input 
@@ -86,7 +90,7 @@ const Login = () => {
         </div>
 
         {errorMessage && 
-        <h1 className='text-center mb-5 text-red-500 font-medium'>
+        <h1 className='mb-5 font-medium text-center text-red-500'>
           {errorMessage}  
         </h1>}
 

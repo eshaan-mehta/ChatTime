@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import clsx from 'clsx';
@@ -7,7 +7,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useChatContext } from '../Context/ChatProvider';
 
 const Signup = () => {
-  const { setUser } = useChatContext()
+  const { user, setUser } = useChatContext()
   const [name, setName] = useState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
@@ -46,7 +46,6 @@ const Signup = () => {
       localStorage.setItem("userInfo", JSON.stringify(response.data));
       setLoading(false);
       setUser(response.data);
-      navigate('/chats');
     })
     .catch((error) => {
       setLoading(false);
@@ -55,9 +54,15 @@ const Signup = () => {
     })
   }
 
+  useEffect(() => { 
+    if (user) {
+      navigate('/chats');
+    }
+  }, [user]);
+
   return (
-    <div className='flex flex-wrap w-full md:flex-nowrap p-2 '>
-      <form className='w-full px-5 justify-center flex-col mb-5' onSubmit={(e) => handleSubmit(e)}>
+    <div className='flex flex-wrap w-full p-2 md:flex-nowrap '>
+      <form className='flex-col justify-center w-full px-5 mb-5' onSubmit={(e) => handleSubmit(e)}>
         <input 
           id="Name"
           className='h-[3rem] rounded-[0.55rem] border-2 border-primary bg-white pl-3 w-full mb-10 '
@@ -91,7 +96,7 @@ const Signup = () => {
           </button>
         </div>
 
-        {/* <div className='inline-block gap-4 items-center mb-6 w-full '>
+        {/* <div className='items-center inline-block w-full gap-4 mb-6 '>
           <h1 className='mb-2 font-semibold text-gray-900'>Profile Picture</h1>
           <input
             id="Pic"
@@ -104,7 +109,7 @@ const Signup = () => {
         </div> */}
 
         {errorMessage && 
-        <h1 className='text-center mb-5 text-red-500 font-medium'>
+        <h1 className='mb-5 font-medium text-center text-red-500'>
           {errorMessage}  
         </h1>}
         

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import axios, { all } from "axios";
+import axios from "axios";
 import clsx from 'clsx';
 import io from "socket.io-client"
 
@@ -14,7 +14,7 @@ const ENDPOINT = "http://localhost:8080";
 var socket, selectedChatCompare;
 
 const ChatsPage = () => {
-  const { user, setUser } = useChatContext();
+  var { user, setUser } = useChatContext();
   const navigate = useNavigate()
 
   const [socketConnected, setSocketConnected] = useState(false)
@@ -42,8 +42,10 @@ const ChatsPage = () => {
       
       if (allChats && !activeChat) {
         setActiveChat(allChats[0]);
-        await getMessages(allChats[0]._id); 
-        console.log(allChats[0]);
+        if (allChats[0]) {
+          getMessages(allChats[0]._id);
+        }
+        
       }
     } catch (error) {
       console.warn(error);
@@ -68,9 +70,9 @@ const ChatsPage = () => {
     })
   }
 
-  const handlePreviewClick =  (chat) => {
+  const handlePreviewClick = (chat) => {
   
-    if (chat._id !== activeChat._id) {
+    if (chat && chat._id !== activeChat._id) {
       //const otherUser = chat.members.find((u) => u._id !== user._id)
 
       setActiveChat(chat);
@@ -81,28 +83,6 @@ const ChatsPage = () => {
     setIsSearchingUser(false);
   }
 
-  const handleEmptyChatClick = async (c) => {
-    if (c.isTempChat) {
-      console.log(c)
-      const config = {
-        headers: {
-          Authorization: `Bearer ${user.token}`
-        }
-      }
-      try {
-        const response = await axios.delete(`http://localhost:8080/api/chats/${c._id}`, config)
-
-        if (response.data) {
-          console.log("deleted temp chat")
-          console.log(response.data);
-        }
-      } catch (error) {
-        console.warn(error)
-      }
-
-      
-    }
-  }
 
   const searchUser = async (keyword) => {
     
@@ -119,7 +99,7 @@ const ChatsPage = () => {
   }
 
   const validateChat = (u) => {
-    const alreadyExistingChat = chats.find((c) => c.members.some((member) => member._id === u._id) > 0)
+    const alreadyExistingChat = chats.length > 0 && chats.find((c) => c.members.some((member) => member._id === u._id) > 0)
 
     // if user searching for already existing chat, redirect to that chat
     if (alreadyExistingChat) {
@@ -130,6 +110,7 @@ const ChatsPage = () => {
   }
 
   const createChat = async (u) => {
+    console.log(user)
     const config = {
       headers: {
         Authorization: `Bearer ${user.token}`
@@ -138,8 +119,9 @@ const ChatsPage = () => {
 
     axios.post("http://localhost:8080/api/chats", { userId: u._id, name: u.name }, config)
     .then((response) => {
-      handlePreviewClick(response.data)
       setChats([response.data, ...chats])
+      setActiveChat(response.data);
+      setIsSearchingUser(false);
       setMessages([])
     })
     .catch((error) => {
@@ -183,6 +165,8 @@ const ChatsPage = () => {
   }, [activeChat, messages])
 
   useEffect(() => { 
+    if (!user) return;
+
     if (!socketConnected)  {
       socket = io(ENDPOINT);
       socket.emit("setup", user._id);
@@ -193,7 +177,7 @@ const ChatsPage = () => {
     }
 
     selectedChatCompare = activeChat;
-  }, [user, activeChat])
+  }, [])
 
   // useEffect(() => {
   //   if (socketConnected && selectedChatCompare) {
@@ -206,7 +190,6 @@ const ChatsPage = () => {
   //       }
   //     })
   //   }
-
   // })
 
   return (
@@ -217,7 +200,7 @@ const ChatsPage = () => {
           <h1 className='text-4xl font-semibold text-primary'> ChatTime </h1>
         </div>
 
-        
+
         <div className='absolute top-0 flex items-center w-auto h-full gap-10 right-4'>
           <h2 className='text-xl font-medium text-white'>
             {user.name}

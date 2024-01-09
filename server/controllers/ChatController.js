@@ -4,14 +4,15 @@ const Message = require("../models/Message");
 
 const fetchChats = asyncHandler(async (req, res) => {
     let chats; 
-
+    
     try {
         chats = await Chat.find( { members: { $elemMatch: { $eq: req.user._id } } })
         .populate("members", '-password')
         .populate("admin", '-password')
         .populate("latestMessage")
         .sort({ updatedAt: -1 });
-      
+        
+        
         chats.forEach((chat) => {
             if (!chat.isGroupChat) {
                 chat.name = (req.user.name === chat.members[0].name) ? chat.members[1].name : chat.members[0].name; 
