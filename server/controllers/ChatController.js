@@ -1,6 +1,6 @@
 const asyncHandler = require("express-async-handler")
 const Chat = require("../models/Chat");
-const User = require("../models/User");
+const Message = require("../models/Message");
 
 const fetchChats = asyncHandler(async (req, res) => {
     let chats; 
@@ -11,13 +11,8 @@ const fetchChats = asyncHandler(async (req, res) => {
         .populate("admin", '-password')
         .populate("latestMessage")
         .sort({ updatedAt: -1 });
-        
-        // chats = await User.populate(chats, {
-        //     path: "latestMessage.sender",
-        //     select: "name pic email"
-        // });
-        
-        chats.forEach(chat => {
+      
+        chats.forEach((chat) => {
             if (!chat.isGroupChat) {
                 chat.name = (req.user.name === chat.members[0].name) ? chat.members[1].name : chat.members[0].name; 
             }
@@ -42,14 +37,22 @@ const createChat = asyncHandler(async (req, res) => {
         res.status(400).json({ error: "Cannot create chat with self" })
     }
 
+    //check if chat with this user already exists
+    const existingChat = await Chat.findOne({
+        isGroupChat: false,
+        members: { $size: 2, $all: [userId, req.user._id] }
+    });
+
+    if (existingChat) {
+        return res.status(200).json(existingChat);
+    }
 
     // create a new chat with two users
     try {
-
         const newChat = await Chat.create({
             name: name,
             isGroupChat: false,
-            members: [req.user._id, userId]
+            members: [req.user._id, userId],
         });
 
         const fullChat = await Chat.findById(newChat._id).populate("members", "-password");
@@ -59,6 +62,21 @@ const createChat = asyncHandler(async (req, res) => {
         res.status(400).json({ error: error.message });
     }
     
+
+});
+
+const deleteChat = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    console.log(id? id : "no chat id");
+    try {
+        const deleted = await Chat.findByIdAndDelete(id);
+        
+        const deletedMessages = Message.findManyAndDelete({ chatRoomID: id });
+
+        res.status(200).json(deleted);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
 
 });
 
@@ -145,6 +163,7 @@ const addToGroupChat = asyncHandler(async (req, res) => {
 module.exports = {
     fetchChats,
     createChat,
+    deleteChat,
     createGroupChat,
     renameGroupChat,
     removeFromGroupChat,

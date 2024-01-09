@@ -11,6 +11,10 @@ const ChatSchema = mongoose.Schema(
       type: Boolean,
       default: false
     },
+    isTempChat: {
+      type: Boolean,
+      default: true
+    },
     members: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",

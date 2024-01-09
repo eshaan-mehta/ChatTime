@@ -10,9 +10,9 @@ const Authenticate = () => {
     const [page, setPage] = useState("login");
 
   return (
-    <div className='w-screen h-screen flex justify-center'>
-        <div className='fixed top-2 left-3 p-3 font-semibold text-primary text-4xl'>
-            <Link to='/'>Only Chats</Link>
+    <div className='flex justify-center w-screen h-screen'>
+        <div className='fixed p-3 text-4xl font-semibold top-2 left-3 text-primary'>
+            <Link to='/'>ChatTime</Link>
         </div>
 
         <div className='fixed top-[7.5rem] sm:top-[6rem] w-[42rem] max-w-[82.5%] bg-light rounded-2xl'>

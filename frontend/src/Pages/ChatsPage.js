@@ -1,24 +1,33 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
-import axios from "axios";
+import axios, { all } from "axios";
 import clsx from 'clsx';
+import io from "socket.io-client"
 
 import { useChatContext } from '../Context/ChatProvider'
 
 import { FaArrowCircleUp } from "react-icons/fa";
 import MessageBubble from '../Components/MessageBubble';
 
+
+const ENDPOINT = "http://localhost:8080";
+var socket, selectedChatCompare;
+
 const ChatsPage = () => {
   const { user, setUser } = useChatContext();
   const navigate = useNavigate()
 
-  const [chats, setChats] = useState([])
-  const [activeChat, setActiveChat] = useState()
+  const [socketConnected, setSocketConnected] = useState(false)
+  const [chats, setChats] = useState([]);
+  const [activeChat, setActiveChat] = useState();
+  
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState("")
+
   const [isSearchingUser, setIsSearchingUser] = useState(false);
   const [searchedUsers, setSearchedUsers] = useState([]);
 
+  
   const fetchChats = async () => {
     const config = {
       headers: {
@@ -26,18 +35,22 @@ const ChatsPage = () => {
       }
     }
     
-    axios.get("http://localhost:8080/api/chats", config)
-    .then((response) => {
-      const allChats = response.data
+    try {
+      const response = await axios.get("http://localhost:8080/api/chats", config);
+      const allChats = response.data;
       setChats(allChats);
-
+      
       if (allChats && !activeChat) {
-        setActiveChat(allChats[0])
-        getMessages(allChats[0]._id)
+        setActiveChat(allChats[0]);
+        await getMessages(allChats[0]._id); 
+        console.log(allChats[0]);
       }
-    })
-
+    } catch (error) {
+      console.warn(error);
+    }
   }
+
+  
 
   const getMessages = async (chatId) => {
     const config = {
@@ -45,25 +58,50 @@ const ChatsPage = () => {
         Authorization: `Bearer ${user.token}`
       }
     }
-
     axios.get(`http://localhost:8080/api/messages/${chatId}`, config)
     .then((response) => {
       setMessages(response.data)
+      socket.emit("join room", chatId)
     })
     .catch((error) => {
       console.warn(error)
     })
   }
 
-  const handlePreviewClick = (chat) => {
+  const handlePreviewClick =  (chat) => {
+  
     if (chat._id !== activeChat._id) {
       //const otherUser = chat.members.find((u) => u._id !== user._id)
+
       setActiveChat(chat);
       getMessages(chat._id)
-    } else {
-      console.log("on active chat");
-    }
+    } //else {
+    //   console.log("on active chat");
+    // }
     setIsSearchingUser(false);
+  }
+
+  const handleEmptyChatClick = async (c) => {
+    if (c.isTempChat) {
+      console.log(c)
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`
+        }
+      }
+      try {
+        const response = await axios.delete(`http://localhost:8080/api/chats/${c._id}`, config)
+
+        if (response.data) {
+          console.log("deleted temp chat")
+          console.log(response.data);
+        }
+      } catch (error) {
+        console.warn(error)
+      }
+
+      
+    }
   }
 
   const searchUser = async (keyword) => {
@@ -83,6 +121,7 @@ const ChatsPage = () => {
   const validateChat = (u) => {
     const alreadyExistingChat = chats.find((c) => c.members.some((member) => member._id === u._id) > 0)
 
+    // if user searching for already existing chat, redirect to that chat
     if (alreadyExistingChat) {
       handlePreviewClick(alreadyExistingChat);
     } else {
@@ -122,51 +161,65 @@ const ChatsPage = () => {
     .then((response) => {
       setMessages([response.data, ...messages])
       setMessage("")
+      console.log("message sent")
     })
     .catch((error) => {
       console.warn(error)
     })
   }
 
-  
   const handleLogoutClick = () => {
     localStorage.removeItem("userInfo");
     setUser(null);
     navigate("/")
   }
 
-  // on message send or new chat creation
-  const updateChatOrder = (id) => {
-    const index = chats.find((c) => c._id === id);
-
-    if (index !== 0 || index !== -1) {
-      const chat = chats.splice(index, 1)[0];
-      chats.unshift(chat);
-    }
-  }
-  
   useEffect(() => {
-    console.log("rerendering")
     if (!user) {
       navigate("/auth");
     } else {
       fetchChats()
     }
-    
   }, [activeChat, messages])
 
+  useEffect(() => { 
+    if (!socketConnected)  {
+      socket = io(ENDPOINT);
+      socket.emit("setup", user._id);
+      socket.on("User Connected", () => {
+        console.log("Connected to Socket.IO");
+        setSocketConnected(true);
+      })
+    }
+
+    selectedChatCompare = activeChat;
+  }, [user, activeChat])
+
+  // useEffect(() => {
+  //   if (socketConnected && selectedChatCompare) {
+  //     socket.on("message received", (newMessage) => {
+  //       if(!selectedChatCompare || selectedChatCompare._id !== newMessage.chat._id) {
+  //         // if receiving message from other chat
+          
+  //       } else {
+  //         setMessages([newMessage, ...messages]);
+  //       }
+  //     })
+  //   }
+
+  // })
 
   return (
-    <div className='w-screen h-screen flex flex-col'>
+    <div className='flex flex-col w-screen h-screen'>
       {/* Nav Bar */}
-      {user && <div className=' py-5 px-4 w-full h-max relative'>
+      {user && <div className='relative w-full px-4 py-5 h-max'>
         <div className='flex justify-center'>
-          <h1 className='font-semibold text-primary text-4xl'> Only Chats </h1>
+          <h1 className='text-4xl font-semibold text-primary'> ChatTime </h1>
         </div>
 
         
-        <div className='absolute top-0 right-4 w-auto h-full flex items-center gap-10'>
-          <h2 className='text-white font-medium text-xl'>
+        <div className='absolute top-0 flex items-center w-auto h-full gap-10 right-4'>
+          <h2 className='text-xl font-medium text-white'>
             {user.name}
           </h2>
 
@@ -180,12 +233,12 @@ const ChatsPage = () => {
         </div>
       </div>}
 
-      {user && <div className='flex flex-grow px-3 pb-2 w-full gap-4 overflow-hidden'>
+      {user && <div className='flex flex-grow w-full gap-4 px-3 pb-2 overflow-hidden'>
         {/* Search View */}
         <div className='w-[30%] h-full rounded-xl bg-none bg-light px-[0.35rem] relative overflow-hidden'>
           {/* My Chats Header */}
-          <div className='flex justify-center mt-2  bg-gray-200 rounded-t-lg'>
-            <h1 className='text-3xl font-medium text-primary px-3 py-2 '>
+          <div className='flex justify-center mt-2 bg-gray-200 rounded-t-lg'>
+            <h1 className='px-3 py-2 text-3xl font-medium text-primary '>
               My Chats
             </h1>
           </div>
@@ -193,10 +246,10 @@ const ChatsPage = () => {
           {/* User Search */}
           <div 
             onPointerLeave={() => setIsSearchingUser(false)}
-            className='w-full relative '>
+            className='relative w-full '>
             <input
               placeholder='Search Users'
-              className='w-full h-10 mt-2 rounded-lg bg-gray-100 border border-black/30 pl-3 '
+              className='w-full h-10 pl-3 mt-2 bg-gray-100 border rounded-lg border-black/30 '
               onClick={() => setIsSearchingUser(true)}
               onChange={(e) => searchUser(e.target.value)}
               
@@ -207,13 +260,13 @@ const ChatsPage = () => {
               {searchedUsers.length > 0 ? searchedUsers.map((user, index) => (
                 <div 
                   key={index} 
-                  className='bg-gray-100 hover:bg-gray-200 mb-2 last:mb-0 py-2 pl-2 border border-black/30 rounded-lg w-full'
+                  className='w-full py-2 pl-2 mb-2 bg-gray-100 border rounded-lg hover:bg-gray-200 last:mb-0 border-black/30'
                   onClick={() => validateChat(user)}
                 >
-                  <p className='text-gray-700 font-medium'>{user.name}</p>
-                  <p className='text-gray-500 text-xs'>{user.email}</p>
+                  <p className='font-medium text-gray-700'>{user.name}</p>
+                  <p className='text-xs text-gray-500'>{user.email}</p>
                 </div>)) : (
-                <div className='pl-2 text-gray-700 text-md h-full'>
+                <div className='h-full pl-2 text-gray-700 text-md'>
                   No Users Found
                 </div>
                 )  
@@ -227,10 +280,12 @@ const ChatsPage = () => {
               {chats.map((chat, index) => (
                 <div 
                   key={index} 
-                  className={clsx('w-full h-[5rem] border-2 border-primary rounded-lg mb-2 items-center px-6 pt-2  hover:cursor-pointer transition-all', {"bg-primary": activeChat._id === chat._id})}
-                  onClick={() => handlePreviewClick(chat)}
+                  className={clsx('w-full max-h-[5rem] border-2 border-primary rounded-lg mb-2 items-center px-6 pt-2 pb-2 hover:cursor-pointer transition-all', {"bg-primary": activeChat._id === chat._id})}
+                  onClick={() => {
+                    handlePreviewClick(chat);
+                  }}
                 >
-                    <h1 className={clsx('font-normal text-2xl tracking-[0.025rem] ', {[`text-${(activeChat._id === chat._id) ? "gray-900" : "gray-700"}`] : true})}>
+                    <h1 className={clsx('font-normal  text-xl lg:text-2xl tracking-[0.025rem] ', {[`text-${(activeChat._id === chat._id) ? "gray-900" : "gray-700"}`] : true})}>
                         {chat.name}
                     </h1>
                     <div className='w-full overflow-hidden max-h-6'>
@@ -241,7 +296,7 @@ const ChatsPage = () => {
                 </div> 
               ))}
             </div>) : (
-            <div className='flex flex-grow justify-center'>
+            <div className='flex justify-center flex-grow'>
               <h1 className='text-gray-700 mt-[10rem] text-center font-extralight'>
                 Search users to start a new chat
               </h1>
@@ -252,14 +307,14 @@ const ChatsPage = () => {
         {/* Chat View */}
         <div className='w-full h-full p-1 rounded-xl bg-light'>
           {activeChat? (
-            <div className='p-1 relative flex flex-col flex-grow w-full h-full'>
+            <div className='relative flex flex-col flex-grow w-full h-full p-1'>
               {/* Chat Name */}
-              <div className='text-center w-full bg-gray-200 rounded-t-lg h-max'>
-                <h1 className='text-3xl font-medium text-gray-900 px-3 py-2 '>{activeChat.name}</h1>
+              <div className='w-full text-center bg-gray-200 rounded-t-lg h-max'>
+                <h1 className='px-3 py-2 text-3xl font-medium text-gray-900 '>{activeChat.name}</h1>
                 <small></small>
               </div>
 
-              <div className='flex flex-col w-full flex-grow overflow-hidden'>
+              <div className='flex flex-col flex-grow w-full overflow-hidden'>
                 {/* Messages View */}
                 <div className='w-full flex flex-col-reverse flex-grow border-x-[8px] border-gray-200 gap-2 py-4 px-2 overflow-auto no-scrollbar'>
                   {messages && messages.map((message, index) => (
@@ -269,7 +324,7 @@ const ChatsPage = () => {
 
                 {/* Message Field */}
                 <form
-                  className='flex items-center gap-4 px-5 py-3 pb-2 bg-gray-200 mb-1 rounded-b-lg'
+                  className='flex items-center gap-4 px-5 py-3 pb-2 mb-1 bg-gray-200 rounded-b-lg'
                   onSubmit={(e) => {
                     e.preventDefault()
                     sendMessage(activeChat._id)
@@ -291,8 +346,8 @@ const ChatsPage = () => {
 
             </div>
           ) : (
-            <div className='w-full h-full flex justify-center items-center'>
-              <h1 className='text-gray-700 text-3xl font-light'>
+            <div className='flex items-center justify-center w-full h-full'>
+              <h1 className='text-3xl font-light text-gray-700'>
                 No Active Chat
               </h1>
             </div>

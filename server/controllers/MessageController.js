@@ -26,7 +26,9 @@ const createMessage = asyncHandler(async (req, res) => {
             message,
         });
 
-        await Chat.findByIdAndUpdate(chatRoomID, { latestMessage: newMessage._id }, { runValidators: true })
+        const chat = await Chat.findByIdAndUpdate(chatRoomID, { latestMessage: newMessage._id, isTempChat: false }, { new: true })
+
+        console.log(chat);
 
         res.status(201).json(newMessage);
     } catch (error) {

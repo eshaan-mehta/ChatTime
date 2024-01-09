@@ -17,7 +17,7 @@ const LandingPage = () => {
         </div>
         
         
-        <div className='flex justify-center gap-8 text-white items-center  mt-[-4rem] sm:mt-4 z-10'>
+        <div className='z-10 flex items-center justify-center gap-8 text-white sm:mt-4'>
           <Link to="/auth" className='rounded-[0.6rem] p-3 w-[10rem] text-center font-bold bg-primary hover:scale-[1.05] transition-all'>Get Started</Link>
           <Link to="/about" className='flex items-center gap-2 bg-none  hover:scale-[1.03] transition-all'>
             <span>About this site</span>
