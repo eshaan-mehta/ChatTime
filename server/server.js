@@ -54,13 +54,16 @@ io.on("connection", (socket) => {
   });
 
   socket.on("new message", (newMessage) => {
-    const chat = newMessage.chat;
+    const chat = newMessage.chatRoomID;
 
-    if (!chat.users) return console.log("Chat.users not defined");
+    
+    if (!chat.members || chat.members.length === 0) return console.log("Chat.members not defined");
+    console.log(chat.members)
 
-    chat.users.forEach((user) => {
-      if (user._id == newMessage.sender._id) return;
-      socket.in(user._id).emit("message received", newMessage);
+    chat.members.forEach((member) => {
+      if (member._id == newMessage.sender._id) return;
+      
+      socket.in(member._id).emit("message received", newMessage);
     });
   });
 });

@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Message = require("../models/Message");
 const Chat = require("../models/Chat");
+const User = require("../models/User");
 
 // get all messages from the chat room
 // TODO: have messages up to a certain prev date and user can get older messages
@@ -20,14 +21,20 @@ const createMessage = asyncHandler(async (req, res) => {
     const { chatRoomID, message } = req.body;
 
     try {
-        const newMessage = await Message.create ({
+        let newMessage = await Message.create ({
             chatRoomID, 
             sender: req.user._id,
             message,
         });
-
+    
+        newMessage = await newMessage.populate("chatRoomID");
+        newMessage = await User.populate(newMessage, {
+                                        path: "chatRoomID.members",
+                                        select: "name email",
+                                        });
+    
         await Chat.findByIdAndUpdate(chatRoomID, { latestMessage: newMessage._id, isTempChat: false }, { new: true })
-
+        
         res.status(201).json(newMessage);
     } catch (error) {
         res.status(400).json({ error: error.message })

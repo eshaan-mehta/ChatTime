@@ -11,7 +11,7 @@ import MessageBubble from '../Components/MessageBubble';
 
 
 const ENDPOINT = "http://localhost:8080";
-var socket, selectedChatCompare;
+var socket;
 
 const ChatsPage = () => {
   var { user, setUser } = useChatContext();
@@ -141,9 +141,10 @@ const ChatsPage = () => {
       message: message
     }, config)
     .then((response) => {
+      socket.emit("new message", response.data);
+
       setMessages([response.data, ...messages])
       setMessage("")
-      console.log("message sent")
     })
     .catch((error) => {
       console.warn(error)
@@ -156,6 +157,7 @@ const ChatsPage = () => {
     navigate("/")
   }
 
+  //redirect to auth page if no user
   useEffect(() => {
     if (!user) {
       navigate("/auth");
@@ -164,6 +166,7 @@ const ChatsPage = () => {
     }
   }, [activeChat, messages])
 
+  //connect user upon initial render
   useEffect(() => { 
     if (!user) return;
 
@@ -175,22 +178,21 @@ const ChatsPage = () => {
         setSocketConnected(true);
       })
     }
-
-    selectedChatCompare = activeChat;
   }, [])
 
-  // useEffect(() => {
-  //   if (socketConnected && selectedChatCompare) {
-  //     socket.on("message received", (newMessage) => {
-  //       if(!selectedChatCompare || selectedChatCompare._id !== newMessage.chat._id) {
-  //         // if receiving message from other chat
-          
-  //       } else {
-  //         setMessages([newMessage, ...messages]);
-  //       }
-  //     })
-  //   }
-  // })
+  useEffect(() => {
+    if (!socketConnected) return
+
+    socket.on("message received", (newMessage) => {
+      if(!activeChat || activeChat._id !== newMessage.chatRoomID._id) {
+        // if receiving message from other chat
+        
+      } else {
+        setMessages([newMessage, ...messages]);
+      }
+    })
+    
+  })
 
   return (
     <div className='flex flex-col w-screen h-screen'>
@@ -218,7 +220,7 @@ const ChatsPage = () => {
 
       {user && <div className='flex flex-grow w-full gap-4 px-3 pb-2 overflow-hidden'>
         {/* Search View */}
-        <div className='w-[30%] h-full rounded-xl bg-none bg-light px-[0.35rem] relative overflow-hidden'>
+        <div className='w-[55%] sm:w-[45%] lg:w-[40%] xl:w-[30%] h-full rounded-xl bg-none bg-light px-[0.35rem] relative overflow-hidden'>
           {/* My Chats Header */}
           <div className='flex justify-center mt-2 bg-gray-200 rounded-t-lg'>
             <h1 className='px-3 py-2 text-3xl font-medium text-primary '>
@@ -268,7 +270,7 @@ const ChatsPage = () => {
                     handlePreviewClick(chat);
                   }}
                 >
-                    <h1 className={clsx('font-normal  text-xl lg:text-2xl tracking-[0.025rem] ', {[`text-${(activeChat._id === chat._id) ? "gray-900" : "gray-700"}`] : true})}>
+                    <h1 className={clsx('font-normal sm:text-lg md:text-xl lg:text-2xl tracking-[0.025rem] ', {[`text-${(activeChat._id === chat._id) ? "gray-900" : "gray-700"}`] : true})}>
                         {chat.name}
                     </h1>
                     <div className='w-full overflow-hidden max-h-6'>
@@ -309,7 +311,7 @@ const ChatsPage = () => {
                 <form
                   className='flex items-center gap-4 px-5 py-3 pb-2 mb-1 bg-gray-200 rounded-b-lg'
                   onSubmit={(e) => {
-                    e.preventDefault()
+                    e.preventDefault();
                     sendMessage(activeChat._id)
                   }}
                 >
