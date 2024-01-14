@@ -53,20 +53,18 @@ io.on("connection", (socket) => {
     console.log(`User joined room ${room}`);
   });
 
-  socket.on("typing", (chat, sender) => {
-    chat.members.forEach((member) => {
-      if (member._id === sender._id) return;
+  socket.on("leave room", (room) => {
+    socket.leave(room);
+    console.log(`User left room ${room}`)
+  })
 
-      socket.in(member._id).emit("typing");
-    })
+  socket.on("typing", (chat, sender) => {
+    console.log("typing in " + chat.name)
+    socket.to(chat._id).emit("typing");
   })
 
   socket.on("stop typing", (chat, sender) => {
-    chat.members.forEach((member) => {
-      if (member._id === sender._id) return;
-
-      socket.in(member._id).emit("stop typing");
-    })
+    socket.to(chat._id).emit("stop typing");
   })
 
   socket.on("new message", (newMessage) => {
@@ -80,5 +78,10 @@ io.on("connection", (socket) => {
       
       socket.in(member._id).emit("message received", newMessage);
     });
+  });
+
+  socket.off("setup", () => {
+    console.log("USER DISCONNECTED");
+    socket.leave(userId);
   });
 });

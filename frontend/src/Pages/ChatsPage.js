@@ -74,9 +74,10 @@ const ChatsPage = () => {
   
     if (chat && chat._id !== activeChat._id) {
       //const otherUser = chat.members.find((u) => u._id !== user._id)
-
+      socket.emit("leave room", activeChat._id);
       setActiveChat(chat);
       getMessages(chat._id)
+      setMessage("");
     } //else {
     //   console.log("on active chat");
     // }
@@ -211,12 +212,32 @@ const ChatsPage = () => {
   useEffect(() => {
     if (!socketConnected || !socket) return;
 
-    socket.on("typing", () => setIsTyping(true));
-    socket.on("stop typing", () => setIsTyping(false));
+    socket.on("typing", () => {
+        setIsTyping(true)
+      
+    });
+    socket.on("stop typing", () => {
+        setIsTyping(false)
+    });
 
     socket.on("message received", (newMessage) => {
       if(!activeChat || activeChat._id !== newMessage.chatRoomID._id) {
         // if receiving message from other chat
+
+        setChats((prevChats) => {
+          const targetChat = prevChats.find((c) => c._id === newMessage.chatRoom._id);
+
+          if (targetChat) {
+            const updatedChats = prevChats.filter((c) => c._id !== newMessage.chatRoom._id);
+            return [targetChat, ...updatedChats];
+          }
+
+          return [newMessage.chatRoom, ...prevChats];
+        })
+
+        // bring chat to top, case when chat doesnt exist or chat already exists
+        // update latest message
+        // add styling
         
       } else {
         setMessages([newMessage, ...messages]);
