@@ -59,7 +59,6 @@ io.on("connection", (socket) => {
   })
 
   socket.on("typing", (chat, sender) => {
-    console.log("typing in " + chat.name)
     socket.to(chat._id).emit("typing");
   })
 
