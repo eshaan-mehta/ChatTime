@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import clsx from 'clsx';
@@ -23,6 +23,8 @@ const ChatsPage = () => {
   
   const [messages, setMessages] = useState([])
   const [message, setMessage] = useState("")
+  const [isTyping, setIsTyping] = useState(false);
+  const timeoutIdRef = useRef(null);
 
   const [isSearchingUser, setIsSearchingUser] = useState(false);
   const [searchedUsers, setSearchedUsers] = useState([]);
@@ -51,8 +53,6 @@ const ChatsPage = () => {
       console.warn(error);
     }
   }
-
-  
 
   const getMessages = async (chatId) => {
     const config = {
@@ -83,6 +83,30 @@ const ChatsPage = () => {
     setIsSearchingUser(false);
   }
 
+  const handleTyping = (e) => {
+    setMessage(e.target.value);
+
+    if (!socketConnected || !socket) return;
+
+    
+    socket.emit("typing", activeChat, user._id);
+    let lastTypingTime = new Date().getTime();
+
+
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current);
+    }
+
+    let timer = 1800;
+
+    timeoutIdRef.current = setTimeout(() => {
+      var timeDiff = new Date().getTime() - lastTypingTime;
+
+      if (timeDiff >= timer) {
+        socket.emit("stop typing", activeChat, user._id);
+      }
+    }, timer);
+  }
 
   const searchUser = async (keyword) => {
     
@@ -130,6 +154,7 @@ const ChatsPage = () => {
   }
 
   const sendMessage = async (id) => {
+    socket.emit("stop typing", activeChat, user._id);
     const config = {
       headers: {
         Authorization: `Bearer ${user.token}`
@@ -170,18 +195,24 @@ const ChatsPage = () => {
   useEffect(() => { 
     if (!user) return;
 
-    if (!socketConnected)  {
+    if (!socketConnected || !socket)  {
       socket = io(ENDPOINT);
       socket.emit("setup", user._id);
-      socket.on("User Connected", () => {
-        console.log("Connected to Socket.IO");
-        setSocketConnected(true);
-      })
+      socket.on("User Connected", () => setSocketConnected(true));
     }
   }, [])
 
   useEffect(() => {
-    if (!socketConnected) return
+    return () => {
+      clearTimeout(timeoutIdRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!socketConnected || !socket) return;
+
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stop typing", () => setIsTyping(false));
 
     socket.on("message received", (newMessage) => {
       if(!activeChat || activeChat._id !== newMessage.chatRoomID._id) {
@@ -306,6 +337,10 @@ const ChatsPage = () => {
                     <MessageBubble key={index} message={message} isUser={message.sender === user._id} />
                   ))}
                 </div>
+                
+                {isTyping && <p className='text-gray-800 text-sm border-x-[8px] border-gray-200 px-2'>
+                  Typing...
+                </p>}
 
                 {/* Message Field */}
                 <form
@@ -318,7 +353,7 @@ const ChatsPage = () => {
                   <input 
                     className='grow h-12 text-[1.075rem] rounded-lg border-2 border-primary px-4 text-left'
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={handleTyping}
                   />
                   <button
                     type='submit'

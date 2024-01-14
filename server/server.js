@@ -53,12 +53,27 @@ io.on("connection", (socket) => {
     console.log(`User joined room ${room}`);
   });
 
+  socket.on("typing", (chat, sender) => {
+    chat.members.forEach((member) => {
+      if (member._id === sender._id) return;
+
+      socket.in(member._id).emit("typing");
+    })
+  })
+
+  socket.on("stop typing", (chat, sender) => {
+    chat.members.forEach((member) => {
+      if (member._id === sender._id) return;
+
+      socket.in(member._id).emit("stop typing");
+    })
+  })
+
   socket.on("new message", (newMessage) => {
     const chat = newMessage.chatRoomID;
 
     
-    if (!chat.members || chat.members.length === 0) return console.log("Chat.members not defined");
-    console.log(chat.members)
+    if (!chat.members || chat.members.length === 0) return 
 
     chat.members.forEach((member) => {
       if (member._id == newMessage.sender._id) return;
