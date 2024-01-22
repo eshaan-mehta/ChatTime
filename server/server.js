@@ -58,18 +58,18 @@ io.on("connection", (socket) => {
     console.log(`User left room ${room}`)
   })
 
-  socket.on("typing", (chat, sender) => {
-    socket.to(chat._id).emit("typing");
+  socket.on("typing", (room) => {
+    socket.to(room).emit("typing");
   })
 
-  socket.on("stop typing", (chat, sender) => {
-    socket.to(chat._id).emit("stop typing");
+  socket.on("stop typing", (room) => {
+    socket.to(room).emit("stop typing");
   })
 
   socket.on("new message", (newMessage) => {
     const chat = newMessage.chatRoomID;
 
-    
+    console.log("message sent");
     if (!chat.members || chat.members.length === 0) return 
 
     chat.members.forEach((member) => {

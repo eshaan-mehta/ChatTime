@@ -44,10 +44,11 @@ const ChatsPage = () => {
       
       if (allChats && !activeChat) {
         setActiveChat(allChats[0]);
-        if (allChats[0]) {
+        if (activeChat) {
+          getMessages(activeChat._id);
+        } else if (allChats[0]) {
           getMessages(allChats[0]._id);
         }
-        
       }
     } catch (error) {
       console.warn(error);
@@ -90,7 +91,7 @@ const ChatsPage = () => {
     if (!socketConnected || !socket) return;
 
     
-    socket.emit("typing", activeChat, user._id);
+    socket.emit("typing", activeChat._id);
     let lastTypingTime = new Date().getTime();
 
 
@@ -104,7 +105,7 @@ const ChatsPage = () => {
       var timeDiff = new Date().getTime() - lastTypingTime;
 
       if (timeDiff >= timer) {
-        socket.emit("stop typing", activeChat, user._id);
+        socket.emit("stop typing", activeChat._id);
       }
     }, timer);
   }
@@ -155,7 +156,7 @@ const ChatsPage = () => {
   }
 
   const sendMessage = async (id) => {
-    socket.emit("stop typing", activeChat, user._id);
+    socket.emit("stop typing", id);
     const config = {
       headers: {
         Authorization: `Bearer ${user.token}`
@@ -168,7 +169,6 @@ const ChatsPage = () => {
     }, config)
     .then((response) => {
       socket.emit("new message", response.data);
-
       setMessages([response.data, ...messages])
       setMessage("")
     })
@@ -190,7 +190,7 @@ const ChatsPage = () => {
     } else {
       fetchChats()
     }
-  }, [activeChat, messages])
+  }, [activeChat])
 
   //connect user upon initial render
   useEffect(() => { 
@@ -200,6 +200,8 @@ const ChatsPage = () => {
       socket = io(ENDPOINT);
       socket.emit("setup", user._id);
       socket.on("User Connected", () => setSocketConnected(true));
+    } else {
+      console.log("socket already connected");
     }
   }, [])
 
@@ -213,6 +215,7 @@ const ChatsPage = () => {
     if (!socketConnected || !socket) return;
 
     socket.on("typing", () => {
+      console.log(activeChat);
         setIsTyping(true)
       
     });
@@ -221,19 +224,21 @@ const ChatsPage = () => {
     });
 
     socket.on("message received", (newMessage) => {
+      
       if(!activeChat || activeChat._id !== newMessage.chatRoomID._id) {
+        console.log(newMessage.chatRoomID);
         // if receiving message from other chat
 
-        setChats((prevChats) => {
-          const targetChat = prevChats.find((c) => c._id === newMessage.chatRoom._id);
+        // setChats((prevChats) => {
+        //   const targetChat = prevChats.find((c) => c._id === newMessage.chatRoom._id);
 
-          if (targetChat) {
-            const updatedChats = prevChats.filter((c) => c._id !== newMessage.chatRoom._id);
-            return [targetChat, ...updatedChats];
-          }
+        //   if (targetChat) {
+        //     const updatedChats = prevChats.filter((c) => c._id !== newMessage.chatRoom._id);
+        //     return [targetChat, ...updatedChats];
+        //   }
 
-          return [newMessage.chatRoom, ...prevChats];
-        })
+        //   return [newMessage.chatRoom, ...prevChats];
+        // })
 
         // bring chat to top, case when chat doesnt exist or chat already exists
         // update latest message
@@ -242,7 +247,7 @@ const ChatsPage = () => {
       } else {
         setMessages([newMessage, ...messages]);
       }
-    })
+    }, [])
     
   })
 
@@ -255,8 +260,8 @@ const ChatsPage = () => {
         </div>
 
 
-        <div className='absolute top-0 flex items-center w-auto h-full gap-10 right-4'>
-          <h2 className='text-xl font-medium text-white'>
+        <div className='absolute top-0 flex items-center w-auto h-full gap-5 md:gap-10 right-4'>
+          <h2 className='text-base font-medium text-white md:text-xl'>
             {user.name}
           </h2>
 
